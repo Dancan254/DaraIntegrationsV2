@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M-Pesa STK Push Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            display: none;
+        }
+        .transaction-status {
+            margin-top: 20px;
+            display: none;
+        }
+        .status-pending {
+            color: #ff9800;
+        }
+        .status-success {
+            color: #4CAF50;
+        }
+        .status-failed {
+            color: #f44336;
+        }
+        pre {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>M-Pesa STK Push</h1>
+    <div class="form-group">
+        <label for="phoneNumber">Phone Number:</label>
+        <input type="text" id="phoneNumber" placeholder="e.g., 0712345678" required>
+    </div>
+    <div class="form-group">
+        <label for="amount">Amount (KES):</label>
+        <input type="number" id="amount" min="1" value="1" placeholder="e.g., 1" required>
+    </div>
+    <button id="submitBtn">Send STK Push</button>
+
+    <div class="loading" id="loading">
+        <p>Processing payment request...</p>
+    </div>
+
+    <div class="result" id="result"></div>
+
+    <div class="transaction-status" id="transactionStatus">
+        <h3>Transaction Status</h3>
+        <p id="statusMessage" class="status-pending">Checking status...</p>
+        <div id="statusDetails"></div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('submitBtn').addEventListener('click', function() {
+        const phoneNumber = document.getElementById('phoneNumber').value;
+        const amount = document.getElementById('amount').value;
+
+        // Basic validation
+        if (!phoneNumber || !amount) {
+            alert('Please enter both phone number and amount');
+            return;
+        }
+
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const transactionStatus = document.getElementById('transactionStatus');
+
+        loading.style.display = 'block';
+        result.style.display = 'none';
+        transactionStatus.style.display = 'none';
+
+        // Send request to backend
+        fetch('http://localhost:8080/api/payments/stk-push', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                phoneNumber: phoneNumber,
+                amount: amount
+            })
+        })
+            .then(response => {
+                // Check if the response is ok first
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.status);
+                }
+
+                // Check the content type to make sure it's JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Expected JSON response but got: ' + contentType);
+                }
+
+                return response.json();
+            })
+            .then(data => {
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.innerHTML = '<h3>STK Push Initiated</h3><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+
+                if (data.checkoutRequestID) {
+                    // Start polling for transaction status
+                    transactionStatus.style.display = 'block';
+                    pollTransactionStatus(data.checkoutRequestID);
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.innerHTML = '<h3>Error</h3><p>' + error.message + '</p>';
+            });
+    });
+
+    function pollTransactionStatus(checkoutRequestId) {
+        const statusMessage = document.getElementById('statusMessage');
+        const statusDetails = document.getElementById('statusDetails');
+
+        statusMessage.className = 'status-pending';
+        statusMessage.textContent = 'Checking transaction status...';
+
+        // Function to check status
+        function checkStatus() {
+            fetch('/api/mpesa/transaction/' + checkoutRequestId)
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            // Transaction not found yet, continue polling
+                            return null;
+                        }
+                        throw new Error('Error fetching transaction status');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data === null) {
+                        // Transaction not processed yet, continue polling
+                        setTimeout(checkStatus, 2000);
+                        return;
+                    }
+
+                    // Transaction found, display result
+                    if (data.resultCode === '0') {
+                        statusMessage.className = 'status-success';
+                        statusMessage.textContent = 'Transaction Successful!';
+                    } else {
+                        statusMessage.className = 'status-failed';
+                        statusMessage.textContent = 'Transaction Failed: ' + data.resultDesc;
+                    }
+
+                    // Display transaction details
+                    statusDetails.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                })
+                .catch(error => {
+                    statusMessage.className = 'status-failed';
+                    statusMessage.textContent = 'Error checking status: ' + error.message;
+                    setTimeout(checkStatus, 3000);
+                });
+        }
+
+        // Start polling
+        setTimeout(checkStatus, 3000);
+    }
+</script>
+</body>
+</html>
