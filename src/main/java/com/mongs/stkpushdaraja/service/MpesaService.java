@@ -38,6 +38,12 @@ public class MpesaService {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Generates access token for the M-Pesa API calls using the consumer key and secret provided by Safaricom Daraja API portal https://developer.safaricom.co.ke/
+     * @return AccessTokenResponse
+     * @throws IOException
+     */
+
     public AccessTokenResponse generateAccessToken() throws IOException {
         String credentials = Credentials.basic(consumerKey, consumerSecret);
         // Prepare the request
@@ -63,6 +69,13 @@ public class MpesaService {
         }
     }
 
+    /**
+     * Initiates STK push to the user's phone number
+     * @param phoneNumber
+     * @param amount
+     * @return STKPushResponse
+     * @throws IOException
+     */
     // Lets get our hands dirty by implementing the method that will initiate the STK push //
     public STKPushResponse initiateSTKPush(String phoneNumber, String amount) throws IOException {
         //format the phone number
