@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 public class CallBackRequest {
     private String merchantRequestId;
     private String checkoutRequestId;
-    private String resultCode;
+    private int resultCode;
     private String resultDesc;
     private String mpesaReceiptNumber;
     private String transactionDate;
