@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class StkPushDarajaApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(StkPushDarajaApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(StkPushDarajaApplication.class, args);
+    }
 
 }
