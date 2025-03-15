@@ -45,6 +45,7 @@ public class MpesaController {
         }
     }
 
+    // Tried various implementations of the callback endpoint but none of them worked to be safe be on prod for you to get the callback data //
     @PostMapping("/callback")
     public ResponseEntity<?> handleMpesaCallback(@RequestBody Map<String, Object> callbackData) {
         log.info("Received M-Pesa Callback: {}", callbackData);
