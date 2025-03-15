@@ -27,9 +27,11 @@ public class MpesaService {
     private String passkey;
     @Value("${mpesa.daraja.stk-push-url}")
     private String stkPushurl;
-
+    @Value("${mpesa.daraja.stk-push-callback-url}")
+    private String stkPushCallbackUrl;
     private final OkHttpClient okHttpClient;
     private final ObjectMapper objectMapper;
+
 
     public MpesaService(OkHttpClient okHttpClient, ObjectMapper objectMapper) {
         this.okHttpClient = okHttpClient;
@@ -80,7 +82,7 @@ public class MpesaService {
         stkPushRequest.setPartyA(phoneNumber);
         stkPushRequest.setPartyB(businessShortCode);
         stkPushRequest.setPhoneNumber(phoneNumber);
-        stkPushRequest.setCallBackURL("https://your-callback-url.com");
+        stkPushRequest.setCallBackURL(stkPushCallbackUrl);
         stkPushRequest.setAccountReference("Test");
         stkPushRequest.setTransactionDesc("Test");
 
