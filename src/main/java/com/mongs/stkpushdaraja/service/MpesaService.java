@@ -76,7 +76,7 @@ public class MpesaService {
      * @return STKPushResponse
      * @throws IOException
      */
-    // Lets get our hands dirty by implementing the method that will initiate the STK push //
+    /// Lets get our hands dirty by implementing the method that will initiate the STK push //
     public STKPushResponse initiateSTKPush(String phoneNumber, String amount) throws IOException {
         //format the phone number
         phoneNumber = phoneNumber.startsWith("0") ? phoneNumber.replaceFirst("0", "254") : phoneNumber;

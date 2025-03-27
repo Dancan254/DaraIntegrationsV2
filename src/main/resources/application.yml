@@ -10,5 +10,5 @@ mpesa:
     consumer-secret: 5bQ7zNyMEDqiiTe44VwZnKxiMiSxjqw6L4tQAhrkBvGLfWt82be7IuaVOyZ05lA8
     passkey: bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919
     business-shortcode: 174379
-    stk-push-callback-url: https://pfh338qjmp.loclx.io/api/payments/callback
+    stk-push-callback-url: https://webhook.site/656f843f-0407-49dc-b0b1-960ce3f263bf
     stk-push-url: https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest
