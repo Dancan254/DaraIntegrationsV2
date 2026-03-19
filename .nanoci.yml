@@ -1,18 +1,31 @@
-name: My App CI
+name: STKPushDaraja CI
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
+      - main
+      - develop
+  pull_request:
+    branches:
+      - master
+      - main
 
 jobs:
-  build:
+
+  build-and-test:
     name: Build and Test
     runs-on: linux
     java-version: 21
     steps:
       - name: Checkout
         uses: git-checkout
-      - name: Build
-        run: mvn clean package -DskipTests
-      - name: Test
+
+      - name: Compile
+        run: mvn clean compile -q
+
+      - name: Run Tests
         run: mvn test
+
+      - name: Package JAR
+        run: mvn package -DskipTests -q
